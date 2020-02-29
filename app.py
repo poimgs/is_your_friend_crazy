@@ -33,7 +33,7 @@ def respond():
         bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he is a psychopath!')
     else:
         text = text_transform.transform([text.lower()])
-        probability = model.predict_proba(text)[0][0]
+        probability = model.predict_proba(text)[0][1]
         prediction = model.predict(text)[0]
         if prediction == 1:
             bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
