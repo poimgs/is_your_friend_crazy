@@ -6,6 +6,7 @@ import pickle
 import sklearn
 
 model = pickle.load(open('psychopath_model.sav', 'rb'))
+text_transform = pickle.load(open('text_transformation.sav', 'rb'))
 
 TOKEN = bot_token
 bot = telegram.Bot(token=TOKEN)
@@ -31,8 +32,9 @@ def respond():
     if text == '/start':
         bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he is a psychopath!')
     else:
-        probability = model.predict_proba(text.lower())[0][0]
-        prediction = model.predict(text.lower())[0]
+        text = text_transform.transform([text.lower()])
+        probability = model.predict_proba(text)[0][0]
+        prediction = model.predict(text)[0]
         if prediction == 1:
             bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
             bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability}')
