@@ -1,6 +1,7 @@
 from flask import Flask, request 
 import telegram 
 from telebot.credentials import bot_token, bot_user_name, URL
+from telebot.psychopath import model
 
 TOKEN = bot_token
 bot = telegram.Bot(token=TOKEN)
@@ -24,9 +25,16 @@ def respond():
 
     # simple logic flow 
     if text == '/start':
-        bot.sendMessage(chat_id=chat_id, text='Hello!')
+        bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he is a psychopath!')
     else:
-        bot.sendMessage(chat_id=chat_id, text='Yo!')
+        probability = model.predict_proba(text.lower())[0][0]
+        prediction = model.predict(text.lower())[0]
+        if prediction == 1:
+            bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
+            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability}')
+        else:
+            bot.sendMessage(chat_id=chat_id, text='Your friend is not a psychopath! Phew!')
+            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability}')
     return 'ok'
 
 # To set webhook for telegram to send POST requests to 
