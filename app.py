@@ -1,7 +1,10 @@
 from flask import Flask, request 
 import telegram 
 from telebot.credentials import bot_token, bot_user_name, URL
-from telebot.psychopath import model
+# from telebot.psychopath import model
+import pickle
+
+model = pickle.load(open('psychopath_model.sav', 'rb'))
 
 TOKEN = bot_token
 bot = telegram.Bot(token=TOKEN)
