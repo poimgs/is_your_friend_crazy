@@ -1,85 +1,46 @@
-import json
-import requests
-import time
-import urllib
+from flask import Flask, request 
+import telegram 
+from telebot.credentials import bot_token, bot_user_name, URL
 
-TOKEN = '1116205707:AAHxdH5GKgzHhbGmxi8ez3IiIbOTYr1rftE'
-URL = "https://api.telegram.org/bot{}/".format(TOKEN)
+TOKEN = bot_token
+bot = telegram.Bot(token=TOKEN)
 
+app = Flask(__name__)
 
-def get_url(url):
-    response = requests.get(url)
-    content = response.content.decode("utf8")
-    return content
+# receives telegram updates whenever a user sends a message
+@app.route('/{}'.format(TOKEN), methods=['POST'])
+def respond():
+    # retrieve the message in JSON and then transform it to Telegram object
+    update = telegram.Update.de_json(request.get_json(force=True), bot)
 
+    chat_id = update.message.chat.id
+    msg_id = update.message.message_id
 
-def get_json_from_url(url):
-    content = get_url(url)
-    js = json.loads(content)
-    return js
+    # Telegram understands UTF-8, so encode text for unicode compatibility
+    text = update.message.text.encode('utf-8').decode()
+    
+    # for debugging purposes only
+    print("got text message :", text)
 
+    # simple logic flow 
+    if text == '/start':
+        bot.sendMessage(chat_id=chat_id, text='Hello!')
+    else:
+        bot.sendMessage(chat_id=chat_id, text='Yo!')
+    return 'ok'
 
-def get_updates(offset=None):
-    url = URL + "getUpdates"
-    if offset:
-        url += "?offset={}".format(offset)
-    js = get_json_from_url(url)
-    return js
+# To set webhook for telegram to send POST requests to 
+@app.route('/set_webhook', methods=['GET', 'POST'])
+def set_webhook():
+    s = bot.setWebhook('{URL}{HOOK}'.format(URL=URL, HOOK=TOKEN))
+    if s:
+        return "webhook setup ok"
+    else:
+        return "webhook setup failed"
 
-
-def get_last_update_id(updates):
-    update_ids = []
-    for update in updates["result"]:
-        update_ids.append(int(update["update_id"]))
-    return max(update_ids)
-
-
-def echo_all(updates):
-    chat_to_texts = {}
-    response = ''
-
-    for update in updates["result"]:
-        text = update["message"]["text"]
-        chat = update["message"]["chat"]["id"]
-
-        if chat not in chat_to_texts:
-            chat_to_texts[chat] = [text]
-        else:
-            chat_to_texts[chat].append(text)
-
-    for chat, texts in chat_to_texts.items():
-        word_count = len(' '.join(texts).split(' '))
-        if word_count > 100:
-            response = 'Result: Psychopath'
-        else:
-            response = 'Result: Not a Psychopath'
-
-        send_message(response, chat)
-
-
-def get_last_chat_id_and_text(updates):
-    num_updates = len(updates["result"])
-    last_update = num_updates - 1
-    text = updates["result"][last_update]["message"]["text"]
-    chat_id = updates["result"][last_update]["message"]["chat"]["id"]
-    return (text, chat_id)
-
-
-def send_message(text, chat_id):
-    text = urllib.parse.quote_plus(text)
-    url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
-    get_url(url)
-
-
-def main():
-    last_update_id = None
-    while True:
-        updates = get_updates(last_update_id)
-        if len(updates["result"]) > 0:
-            last_update_id = get_last_update_id(updates) + 1
-            echo_all(updates)
-        time.sleep(2)
-
+@app.route('/')
+def index():
+    return '.'
 
 if __name__ == '__main__':
-    main()
+    app.run(threaded=True)
