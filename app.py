@@ -3,6 +3,7 @@ import telegram
 from telebot.credentials import bot_token, bot_user_name, URL
 # from telebot.psychopath import model
 import pickle
+import sklearn
 
 model = pickle.load(open('psychopath_model.sav', 'rb'))
 
