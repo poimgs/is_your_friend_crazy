@@ -30,7 +30,7 @@ def respond():
 
     # simple logic flow 
     if text == '/start':
-        bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he is a psychopath!')
+        bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he/she is a psychopath!')
     else:
         text = text_transform.transform([text.lower()])
         probability = round(model.predict_proba(text)[0][1], 2)
