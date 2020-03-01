@@ -34,7 +34,7 @@ def respond():
         bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he/she is a psychopath!')
         bot.sendMessage(chat_id=chat_id, text='You may also check your friend\'s twitter account by typing in their username, starting with a \'@\' symbol')
     elif text[0] == '@':
-        tweetCriteria = got.manager.TweetCriteria().setUsername("@realDonaldTrump")\
+        tweetCriteria = got.manager.TweetCriteria().setUsername(text)\
                                            .setMaxTweets(20)
         tweet = got.manager.TweetManager.getTweets(tweetCriteria)
         tweets = []
@@ -49,10 +49,10 @@ def respond():
 
         if prediction == 1:
             bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
-            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+            bot.sendMessage(chat_id=chat_id, text=f'He/She has a score of {probability*100}%')
         else:
             bot.sendMessage(chat_id=chat_id, text='Your friend is not a psychopath! Phew!')
-            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+            bot.sendMessage(chat_id=chat_id, text=f'He/She has a score of {probability*100}%')
     
     else:
         text = text_transform.transform([text.lower()])
@@ -60,10 +60,10 @@ def respond():
         prediction = model.predict(text)[0]
         if prediction == 1:
             bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
-            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+            bot.sendMessage(chat_id=chat_id, text=f'He/She has a score of {probability*100}%')
         else:
             bot.sendMessage(chat_id=chat_id, text='Your friend is not a psychopath! Phew!')
-            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+            bot.sendMessage(chat_id=chat_id, text=f'He/She has a score of {probability*100}%')
     return 'ok'
 
 # To set webhook for telegram to send POST requests to 
