@@ -44,7 +44,7 @@ def respond():
         tweets = ' '.join(tweets)
 
         text = text_transform.transform([tweets.lower()])
-        prin(text)
+        print(text)
         probability = round(model.predict_proba(text)[0][1], 2)
         prediction = model.predict(text)[0]
 
