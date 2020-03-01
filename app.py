@@ -1,9 +1,10 @@
 from flask import Flask, request 
 import telegram 
 from telebot.credentials import bot_token, bot_user_name, URL
-# from telebot.psychopath import model
 import pickle
 import sklearn
+import GetOldTweets3 as got
+import preprocessor as p
 
 model = pickle.load(open('psychopath_model.sav', 'rb'))
 text_transform = pickle.load(open('text_transformation.sav', 'rb'))
@@ -31,6 +32,28 @@ def respond():
     # simple logic flow 
     if text == '/start':
         bot.sendMessage(chat_id=chat_id, text='Hello! Type in what your friend recently sent to you to check if he/she is a psychopath!')
+        bot.sendMessage(chat_id=chat_id, text='You may also check your friend\'s twitter account by typing in their username, starting with a \'@\' symbol')
+    elif text[0] == '@':
+        tweetCriteria = got.manager.TweetCriteria().setUsername("@realDonaldTrump")\
+                                           .setMaxTweets(20)
+        tweet = got.manager.TweetManager.getTweets(tweetCriteria)
+        tweets = []
+        for text in tweet:
+            tweets.append(p.clean(text.text))
+
+        tweets = ' '.join(tweets)
+
+        text = text_transform.transform([tweets.lower()])
+        probability = round(model.predict_proba(text)[0][1], 2)
+        prediction = model.predict(text)[0]
+
+        if prediction == 1:
+            bot.sendMessage(chat_id=chat_id, text='Your friend is a psychopath! RUN AWAY!')
+            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+        else:
+            bot.sendMessage(chat_id=chat_id, text='Your friend is not a psychopath! Phew!')
+            bot.sendMessage(chat_id=chat_id, text=f'He has a score of {probability*100}%')
+    
     else:
         text = text_transform.transform([text.lower()])
         probability = round(model.predict_proba(text)[0][1], 2)
