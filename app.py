@@ -13,11 +13,6 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
 from collections import defaultdict
 
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-
 TOKEN = bot_token
 bot = telegram.Bot(token=TOKEN)
 
