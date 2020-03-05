@@ -5,14 +5,51 @@ import pickle
 import sklearn
 import GetOldTweets3 as got
 import preprocessor as p
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk import pos_tag
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet as wn
+from collections import defaultdict
 
-model = pickle.load(open('psychopath_model.sav', 'rb'))
-text_transform = pickle.load(open('text_transformation.sav', 'rb'))
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
 
 TOKEN = bot_token
 bot = telegram.Bot(token=TOKEN)
 
 app = Flask(__name__)
+
+model = pickle.load(open('logistic_regression_psychopath_model.sav', 'rb'))
+text_transform = pickle.load(open('text_transformation_model.sav', 'rb'))
+
+tag_map = defaultdict(lambda : wn.NOUN)
+tag_map['J'] = wn.ADJ
+tag_map['V'] = wn.VERB
+tag_map['R'] = wn.ADV
+
+word_Lemmatized = WordNetLemmatizer()
+
+def clean_string(text):
+    final_words = []
+    
+    text = p.clean(text)
+    text = text.lower()
+    tokens = word_tokenize(text)
+
+    for word, tag in pos_tag(tokens):
+        # remove stopwords and only keep alphabets
+        if word not in stopwords.words('english') and word.isalpha():
+            # lemmatize words
+            word_final = word_Lemmatized.lemmatize(word,tag_map[tag[0]])
+            # append final words to final_words list
+            final_words.append(word_final)
+            
+    # return final string
+    return ' '.join(final_words)
 
 # receives telegram updates whenever a user sends a message
 @app.route('/{}'.format(TOKEN), methods=['POST'])
@@ -39,12 +76,11 @@ def respond():
         tweet = got.manager.TweetManager.getTweets(tweetCriteria)
         tweets = []
         for text in tweet:
-            tweets.append(p.clean(text.text))
+            tweets.append(clean_string(text.text))
 
         tweets = ' '.join(tweets)
 
         text = text_transform.transform([tweets.lower()])
-        print(text)
         probability = round(model.predict_proba(text)[0][1], 2)
         prediction = model.predict(text)[0]
 
@@ -56,6 +92,7 @@ def respond():
             bot.sendMessage(chat_id=chat_id, text=f'He/She has a score of {probability*100}%')
     
     else:
+        text = clean_string(text)
         text = text_transform.transform([text.lower()])
         probability = round(model.predict_proba(text)[0][1], 2)
         prediction = model.predict(text)[0]
