@@ -1,6 +1,7 @@
+import os
 from flask import Flask, request 
 import telegram 
-from telebot.credentials import bot_token, bot_user_name, URL
+# from telebot.credentials import bot_token, bot_user_name, URL
 import pickle
 import sklearn
 import GetOldTweets3 as got
@@ -13,7 +14,8 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
 from collections import defaultdict
 
-TOKEN = bot_token
+URL = os.environ.get('URL')
+TOKEN = os.environ.get('bot_token')
 bot = telegram.Bot(token=TOKEN)
 
 app = Flask(__name__)
